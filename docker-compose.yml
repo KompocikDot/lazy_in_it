@@ -4,7 +4,10 @@ services:
   website:
     build:
       context: ./website
-      dockerfile: website.Dockerfile
+      dockerfile: dev.Dockerfile
+
+    env_file:
+      - db/.env
 
     ports:
       - "8000:8000"
@@ -13,12 +16,17 @@ services:
     volumes:
       - ./website:/lazy_in_it/website
 
+
+
   db:
     expose:
       - "5432:5432"
     image: postgres:16.1-alpine3.19
     volumes:
       - db_data:/var/lib/postgresql/data
+
+    env_file:
+      - db/.env
 
 volumes:
   db_data:
