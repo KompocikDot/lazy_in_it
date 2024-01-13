@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  website:
+    build:
+      context: ./website
+      dockerfile: website.Dockerfile
+
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - ./website:/lazy_in_it/website
+
+  db:
+    expose:
+      - "5432:5432"
+    image: postgres:16.1-alpine3.19
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

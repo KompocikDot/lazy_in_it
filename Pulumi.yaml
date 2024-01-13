@@ -1,0 +1,6 @@
+name: lazy_in_it
+runtime:
+  name: python
+  options:
+    virtualenv: .venv
+description: Website with IT job postings
