@@ -1,7 +1,10 @@
 from sqlalchemy import func
 from sqlmodel import select
 from sqlmodel.sql.expression import Select, asc, desc
+from fastapi.responses import HTMLResponse
+from fastapi import Request, Query
 
+from core.templates import templates
 from core.db_funcs import find_one_or_none
 from core.deps import DbSession
 from core.settings import get_settings
@@ -51,7 +54,7 @@ async def create_posting(db: DbSession, payload: CreatePostingSchema) -> Posting
     return instance
 
 
-async def paginate_postings(
+async def _paginate_postings(
     db: DbSession, page: int, order: SortTypeQuery
 ) -> list[Posting]:
     limit = get_settings().PAGINATION_LIMIT
@@ -71,3 +74,29 @@ async def paginate_postings(
     res = await db.exec(stmt)
 
     return [row[0] for row in res.unique().all()]
+
+
+async def serve_templated_postings(
+    db: DbSession,
+    request: Request,
+    page: int = Query(1, ge=1),
+    sort: SortTypeQuery | None = SortTypeQuery.DESC,
+) -> HTMLResponse:
+    postings = await _paginate_postings(db, page, sort)
+
+    if page and page > 1:
+        name = "postings.j2"
+        context = {"postings": postings}
+
+    else:
+        name = "index.j2"
+        context = {
+            "sort_options": [
+                {"name": "Most Recent", "active": True, "href": "/?sort=desc"},
+                {"name": "Least Recent", "active": False, "href": "/?sort=asc"},
+            ],
+            "postings_count": 4,
+            "postings": postings,
+        }
+
+    return templates.TemplateResponse(request=request, name=name, context=context)
