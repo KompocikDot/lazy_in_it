@@ -23,7 +23,6 @@ if not get_settings().DEBUG:
 else:
     app = FastAPI(lifespan=lifespan)
 
-
 app.include_router(main_router)
 
 app.mount("/static", StaticFiles(directory="./static"), name="static")

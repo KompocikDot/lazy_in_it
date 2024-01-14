@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     DB_URL: str
     DB_TEST_URL: str
+    PAGINATION_LIMIT: int = 50
 
     model_config = SettingsConfigDict(env_file=".env")
 

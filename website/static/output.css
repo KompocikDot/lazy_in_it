@@ -3373,6 +3373,10 @@ select {
 }
 
 @media (min-width: 768px) {
+  .md\:mt-4 {
+    margin-top: 1rem;
+  }
+
   .md\:max-w-4xl {
     max-width: 56rem;
   }
@@ -3403,6 +3407,10 @@ select {
 
   .md\:border-t {
     border-top-width: 1px;
+  }
+
+  .md\:pt-6 {
+    padding-top: 1.5rem;
   }
 }
 

@@ -1,37 +1,8 @@
-from datetime import datetime
-
 from sqlmodel import SQLModel, Field, Relationship
 
-from enum import StrEnum, auto
 
-
-class Experience(StrEnum):
-    INTERN = auto()
-    JUNIOR = auto()
-    MEDIOR = auto()
-    SENIOR = auto()
-    LEAD = auto()
-
-
-class TypeOfWork(StrEnum):
-    INTERNSHIP = auto()
-    PART_TIME = auto()
-    FULL_TIME = auto()
-    FREELANCE = auto()
-
-
-class EmploymentType(StrEnum):
-    B2B = auto()
-    PERMANENT = auto()
-    INTERNSHIP = auto()
-    TASK_SPECIFIC_CONTRACT = auto()
-    MANDATE_CONTRACT = auto()
-
-
-class WorkMode(StrEnum):
-    REMOTE = auto()
-    HYBRID = auto()
-    STATIONARY = auto()
+from core.mixins import BaseModelMixin
+from postings.schemas import BasePostingSchema
 
 
 class PostingsTechnologiesLink(SQLModel, table=True):
@@ -43,57 +14,53 @@ class PostingsTechnologiesLink(SQLModel, table=True):
     )
 
 
-class Posting(SQLModel, table=True):
-    id: int | None = Field(primary_key=True, default=None)
-    job_title: str
-    experience: Experience
-    type_of_work: TypeOfWork
-    employment_type: EmploymentType
-    work_mode: WorkMode
+class Posting(BaseModelMixin, BasePostingSchema, table=True):
+    company_id: int | None = Field(default=None, foreign_key="company.id")
+    company: "Company" = Relationship(
+        back_populates="postings", sa_relationship_kwargs={"lazy": "joined"}
+    )
 
-    originally_published_at: datetime
+    city_id: int | None = Field(default=None, foreign_key="city.id")
+    city: "City" = Relationship(
+        back_populates="postings", sa_relationship_kwargs={"lazy": "joined"}
+    )
 
-    posting_url: str
-    posting_photo: str | None
-
-    company_id: int | None
-    company: "Company" = Relationship(back_populates="postings")
-
-    city_id: int | None
-    city: "City" = Relationship(back_populates="postings")
-
-    salary_id: int | None
-    salary: "Salary" = Relationship(back_populates="postings")
+    salary_id: int | None = Field(default=None, foreign_key="salary.id")
+    salary: "Salary" = Relationship(
+        back_populates="postings", sa_relationship_kwargs={"lazy": "joined"}
+    )
 
     technologies: list["Technology"] = Relationship(
-        back_populates="postings", link_model=PostingsTechnologiesLink
+        back_populates="postings",
+        link_model=PostingsTechnologiesLink,
+        sa_relationship_kwargs={"lazy": "joined"},
     )
 
 
 class Company(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
-    name: str
+    name: str = Field(unique=True)
 
-    postings: list[Posting] = Relationship(back_populates="team")
+    postings: list[Posting] = Relationship(back_populates="company")
 
 
 class City(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
-    name: str
+    name: str = Field(unique=True)
 
     postings: list[Posting] = Relationship(back_populates="city")
 
 
 class Salary(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
-    name: str
+    amount: str = Field(unique=True)
 
     postings: list[Posting] = Relationship(back_populates="salary")
 
 
 class Technology(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
-    name: str
+    name: str = Field(unique=True)
 
     postings: list[Posting] = Relationship(
         back_populates="technologies", link_model=PostingsTechnologiesLink
