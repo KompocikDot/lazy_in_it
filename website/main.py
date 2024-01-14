@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from sqlmodel import SQLModel
+from starlette.staticfiles import StaticFiles
 
 from core.settings import get_settings
 from core.db import engine
@@ -24,3 +25,5 @@ else:
 
 
 app.include_router(main_router)
+
+app.mount("/static", StaticFiles(directory="./static"), name="static")

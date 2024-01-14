@@ -1,0 +1,61 @@
+<div>
+    <div class="mx-auto text-center">
+        <section aria-labelledby="filter-heading">
+
+            <div class="flex items-center justify-between">
+                <div class="relative inline-block text-left" x-data="{ isOpen: false }">
+                    <div>
+                        <button
+                                type="button"
+                                class="group inline-flex justify-center text-sm font-medium text-white hover:text-gray"
+                                id="mobile-menu-button"
+                                aria-expanded="false"
+                                aria-haspopup="true"
+                                @click="isOpen = !isOpen"
+                        >
+                            Sort
+                            <svg class="-mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-white"
+                                 viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                      d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div
+                            class="absolute right-0 z-10 mt-2 w-40 origin-top-left rounded-md bg-dark-gray shadow-2xl ring-1 ring-dark-green/80 ring-opacity-50 focus:outline-none"
+                            x-show="isOpen"
+
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="transform opacity-0 scale-95"
+                            x-transition:enter-end="transform opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="transform opacity-100 scale-100"
+                            x-transition:leave-end="transform opacity-0 scale-95"
+
+                            role="menu"
+                            aria-orientation="vertical"
+                            aria-labelledby="mobile-menu-button"
+                            tabindex="-1"
+                    >
+                        {% for option in sort_options %}
+                        <a
+                            href="{{ option.href }}"
+                            class="block text-center px-4 py-2 text-sm font-medium text-white first-of-type:rounded-t-md last-of-type:rounded-b-md
+                            {% if not option.active %} hover:bg-dark-green/30 {% endif %}
+                            {% if option.active %} bg-dark-green/90 {% endif %} }}"
+                            role="menuitem"
+                            tabindex="-1"
+                            id="{{ option.name }}"
+                        >
+                            {{ option.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+</div>

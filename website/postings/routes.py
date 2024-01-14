@@ -13,6 +13,11 @@ async def mainpage(request: Request):
         request=request,
         name="index.j2",
         context={
+            "sort_options": [
+                {"name": "Most Recent", "active": True, "href": "/?sort=desc"},
+                {"name": "Least Recent", "active": False, "href": "/?sort=asc"},
+            ],
+            "postings_count": 4,
             "postings": [
                 {
                     "job_title": "Python developer with DevOps skillset",
@@ -71,6 +76,6 @@ async def mainpage(request: Request):
                     "salary": {"currency": "EUR", "amount": "100"},
                     "company": "Apple Inc.",
                 },
-            ]
+            ],
         },
     )
