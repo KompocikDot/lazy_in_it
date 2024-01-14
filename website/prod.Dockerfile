@@ -1,4 +1,4 @@
-FROM python:3.12-alpine3.19
+FROM python:3.11-alpine3.19
 
 RUN adduser -D lazyinuit && chown -R lazyinuit /lazy_in_it/website
 
