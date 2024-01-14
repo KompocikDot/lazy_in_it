@@ -33,6 +33,16 @@ class WorkMode(StrEnum):
     STATIONARY = auto()
 
 
+class Currency(StrEnum):
+    EUR = auto()
+    GBP = auto()
+    USD = auto()
+    CAD = auto()
+    CNY = auto()
+    JPY = auto()
+    PLN = auto()
+
+
 class BasePostingSchema(SQLModel):
     job_title: str
     experience: Experience
@@ -50,6 +60,7 @@ class CreatePostingSchema(BasePostingSchema):
     company_name: str
     city_name: str
     salary_amount: str
+    salary_currency: Currency
 
 
 class PostingSchema(BasePostingSchema):

@@ -1,7 +1,7 @@
 {% for posting in postings %}
     {% if loop.index0 == postings|length - 2 %}
         <li
-            hx-get="/?page=2&"
+            hx-get="/?page={{ page + 1 }}&sort={{ sort }}"
             hx-trigger="revealed"
             hx-swap="afterend"
         >
@@ -84,6 +84,4 @@
                 </div>
             </div>
         </li>
-
-
 {% endfor %}

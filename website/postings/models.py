@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 
 
 from core.mixins import BaseModelMixin
-from postings.schemas import BasePostingSchema
+from postings.schemas import BasePostingSchema, Currency
 
 
 class PostingsTechnologiesLink(SQLModel, table=True):
@@ -54,6 +54,7 @@ class City(SQLModel, table=True):
 class Salary(SQLModel, table=True):
     id: int | None = Field(primary_key=True, default=None)
     amount: str = Field(unique=True)
+    currency: Currency
 
     postings: list[Posting] = Relationship(back_populates="salary")
 

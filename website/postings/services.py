@@ -22,9 +22,12 @@ from .schemas import CreatePostingSchema
 async def create_posting(db: DbSession, payload: CreatePostingSchema) -> Posting:
     instance = Posting.model_validate(payload)
 
-    salary_stmt = select(Salary).where(Salary.amount == payload.salary_amount)
+    salary_stmt = select(Salary).where(
+        Salary.amount == payload.salary_amount,
+        Salary.currency == payload.salary_currency,
+    )
     if not (salary := await find_one_or_none(db, salary_stmt)):
-        salary = Salary(amount=payload.salary_amount)
+        salary = Salary(amount=payload.salary_amount, currency=payload.salary_currency)
         db.add(salary)
 
     city_stmt = select(City).where(
@@ -86,11 +89,17 @@ async def serve_templated_postings(
 
     if page and page > 1:
         name = "postings.j2"
-        context = {"postings": postings}
+        context = {
+            "postings": postings,
+            "page": page,
+            "sort": sort,
+        }
 
     else:
         name = "index.j2"
         context = {
+            "page": 1,
+            "sort": sort,
             "sort_options": [
                 {"name": "Most Recent", "active": True, "href": "/?sort=desc"},
                 {"name": "Least Recent", "active": False, "href": "/?sort=asc"},
