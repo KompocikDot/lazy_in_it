@@ -6,6 +6,8 @@ from sqlmodel import SQLModel
 from core.settings import get_settings
 from core.db import engine
 
+from postings.routes import router as main_router
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -19,3 +21,6 @@ if not get_settings().DEBUG:
     app = FastAPI(docs_url=None, lifespan=lifespan)
 else:
     app = FastAPI(lifespan=lifespan)
+
+
+app.include_router(main_router)
