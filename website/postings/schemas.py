@@ -1,10 +1,12 @@
 from datetime import datetime
-from enum import StrEnum, auto
+from enum import auto
 
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Field
+
+from core.utils import CIStrEnum
 
 
-class Experience(StrEnum):
+class Experience(CIStrEnum):
     INTERN = auto()
     JUNIOR = auto()
     MEDIOR = auto()
@@ -12,14 +14,14 @@ class Experience(StrEnum):
     LEAD = auto()
 
 
-class TypeOfWork(StrEnum):
+class TypeOfWork(CIStrEnum):
     INTERNSHIP = auto()
     PART_TIME = auto()
     FULL_TIME = auto()
     FREELANCE = auto()
 
 
-class EmploymentType(StrEnum):
+class EmploymentType(CIStrEnum):
     B2B = auto()
     PERMANENT = auto()
     INTERNSHIP = auto()
@@ -27,13 +29,13 @@ class EmploymentType(StrEnum):
     MANDATE_CONTRACT = auto()
 
 
-class WorkMode(StrEnum):
+class WorkMode(CIStrEnum):
     REMOTE = auto()
     HYBRID = auto()
     STATIONARY = auto()
 
 
-class Currency(StrEnum):
+class Currency(CIStrEnum):
     EUR = auto()
     GBP = auto()
     USD = auto()
@@ -41,6 +43,27 @@ class Currency(StrEnum):
     CNY = auto()
     JPY = auto()
     PLN = auto()
+
+
+class BaseCompanySchema(SQLModel):
+    id: int
+    name: str = Field(unique=True)
+
+
+class BaseCitySchema(SQLModel):
+    id: int
+    name: str = Field(unique=True)
+
+
+class BaseSalarySchema(SQLModel):
+    id: int
+    amount: str = Field(unique=True)
+    currency: Currency
+
+
+class BaseTechnologySchema(SQLModel):
+    id: int
+    name: str = Field(unique=True)
 
 
 class BasePostingSchema(SQLModel):
@@ -65,3 +88,7 @@ class CreatePostingSchema(BasePostingSchema):
 
 class PostingSchema(BasePostingSchema):
     id: int
+    company: BaseCompanySchema
+    salary: BaseSalarySchema
+    city: BaseCitySchema
+    # technologies: list[BaseTechnologySchema]

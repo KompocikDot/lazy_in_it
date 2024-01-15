@@ -11,9 +11,19 @@ engine = AsyncEngine(create_engine(get_settings().DB_URL, echo=True, future=True
 test_engine = create_async_engine(get_settings().DB_TEST_URL, future=True, echo=False)
 
 
-async def get_session(test_session: bool = False) -> AsyncSession:
+async def get_session() -> AsyncSession:
     async_session = sessionmaker(  # noqa
-        test_engine if test_session else engine,
+        engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+    async with async_session() as session:
+        yield session
+
+
+async def get_test_session() -> AsyncSession:
+    async_session = sessionmaker(  # noqa
+        test_engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )

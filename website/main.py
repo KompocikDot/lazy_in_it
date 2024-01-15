@@ -5,16 +5,17 @@ from sqlmodel import SQLModel
 from starlette.staticfiles import StaticFiles
 
 from core.settings import get_settings
-from core.db import engine
+from core.db import engine, test_engine
 
 from postings.routes import router as main_router
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    async with test_engine.begin() as test_conn:
+        await test_conn.run_sync(SQLModel.metadata.create_all)
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
-
     yield
 
 

@@ -2,7 +2,13 @@ from sqlmodel import SQLModel, Field, Relationship
 
 
 from core.mixins import BaseModelMixin
-from postings.schemas import BasePostingSchema, Currency
+from postings.schemas import (
+    BasePostingSchema,
+    BaseTechnologySchema,
+    BaseSalarySchema,
+    BaseCitySchema,
+    BaseCompanySchema,
+)
 
 
 class PostingsTechnologiesLink(SQLModel, table=True):
@@ -37,32 +43,19 @@ class Posting(BaseModelMixin, BasePostingSchema, table=True):
     )
 
 
-class Company(SQLModel, table=True):
-    id: int | None = Field(primary_key=True, default=None)
-    name: str = Field(unique=True)
-
+class Company(BaseModelMixin, BaseCompanySchema, table=True):
     postings: list[Posting] = Relationship(back_populates="company")
 
 
-class City(SQLModel, table=True):
-    id: int | None = Field(primary_key=True, default=None)
-    name: str = Field(unique=True)
-
+class City(BaseModelMixin, BaseCitySchema, table=True):
     postings: list[Posting] = Relationship(back_populates="city")
 
 
-class Salary(SQLModel, table=True):
-    id: int | None = Field(primary_key=True, default=None)
-    amount: str = Field(unique=True)
-    currency: Currency
-
+class Salary(BaseModelMixin, BaseSalarySchema, table=True):
     postings: list[Posting] = Relationship(back_populates="salary")
 
 
-class Technology(SQLModel, table=True):
-    id: int | None = Field(primary_key=True, default=None)
-    name: str = Field(unique=True)
-
+class Technology(BaseModelMixin, BaseTechnologySchema, table=True):
     postings: list[Posting] = Relationship(
         back_populates="technologies", link_model=PostingsTechnologiesLink
     )
