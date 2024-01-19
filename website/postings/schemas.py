@@ -1,9 +1,11 @@
 from datetime import datetime
-from enum import auto
 
-from sqlmodel import SQLModel, Field
+from pydantic import ConfigDict
+from sqlmodel import SQLModel, Field, DateTime
 
 from core.utils import CIStrEnum
+
+from enum import auto
 
 
 class Experience(CIStrEnum):
@@ -32,7 +34,7 @@ class EmploymentType(CIStrEnum):
 class WorkMode(CIStrEnum):
     REMOTE = auto()
     HYBRID = auto()
-    STATIONARY = auto()
+    OFFICE = auto()
 
 
 class Currency(CIStrEnum):
@@ -67,13 +69,15 @@ class BaseTechnologySchema(SQLModel):
 
 
 class BasePostingSchema(SQLModel):
+    model_config = ConfigDict(validation_error_cause=True)
+
     job_title: str
     experience: Experience
     type_of_work: TypeOfWork
     employment_type: EmploymentType
     work_mode: WorkMode
 
-    originally_published_at: datetime
+    originally_published_at: datetime = Field(sa_type=DateTime(timezone=True))
 
     posting_url: str
     posting_photo: str | None

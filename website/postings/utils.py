@@ -1,6 +1,8 @@
-from enum import StrEnum, auto
+from enum import auto
+
+from core.utils import CIStrEnum
 
 
-class SortTypeQuery(StrEnum):
+class SortTypeQuery(CIStrEnum):
     ASC = auto()
     DESC = auto()

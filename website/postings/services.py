@@ -20,6 +20,7 @@ from .schemas import CreatePostingSchema
 
 
 async def create_posting(db: DbSession, payload: CreatePostingSchema) -> Posting:
+    print("data", type(payload), payload.experience, payload.work_mode)
     instance = Posting.model_validate(payload)
 
     salary_stmt = select(Salary).where(

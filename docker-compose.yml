@@ -17,7 +17,7 @@ services:
       - ./website:/lazy_in_it/website
 
   db:
-    expose:
+    ports:
       - "5432:5432"
     build:
       context: ./db

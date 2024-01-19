@@ -1,8 +1,9 @@
 import pytest
 from httpx import AsyncClient
+from sqlmodel import SQLModel
 
 from main import app
-from core.db import get_session, get_test_session
+from core.db import get_session, get_test_session, test_engine
 
 app.dependency_overrides[get_session] = get_test_session
 
@@ -19,8 +20,8 @@ async def test_create_posting_with_non_existing_relations():
         "work_mode": "hybrid",
         "originally_published_at": "2024-01-14T19:24:44.586",
         "posting_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "posting_photo": "http://tinyurl.com/5n8bk5tv",
-        "company_name": "My future employeer :)",
+        "posting_photo": "https://tinyurl.com/5n8bk5tv",
+        "company_name": "My future employer :)",
         "city_name": "Wrocław",
         "salary_amount": "2500",
         "salary_currency": "pln",
@@ -36,9 +37,9 @@ async def test_create_posting_with_non_existing_relations():
         "work_mode": "hybrid",
         "originally_published_at": "2024-01-14T19:24:44.586000",
         "posting_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        "posting_photo": "http://tinyurl.com/5n8bk5tv",
+        "posting_photo": "https://tinyurl.com/5n8bk5tv",
         "company": {
-            "name": "My future employeer :)",
+            "name": "My future employer :)",
         },
         "salary": {
             "amount": "2500",
@@ -58,3 +59,12 @@ async def test_create_posting_with_non_existing_relations():
     data["city"].pop("id")
 
     assert data == expected, (res.status_code, data)
+
+
+async def setup() -> None:
+    async with test_engine.begin() as test_conn:
+        await test_conn.sync(SQLModel.metadata.create_all)
+
+
+def teardown() -> None:
+    SQLModel.metadata.drop_all(bind=test_engine)

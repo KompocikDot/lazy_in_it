@@ -1,8 +1,8 @@
 FROM python:3.11-alpine3.19
 
-RUN adduser -D lazyinuit && chown -R lazyinuit /lazy_in_it/website
-
 WORKDIR /lazy_in_it/website
+
+RUN adduser -D lazyinuit && chown -R lazyinuit /lazy_in_it/website
 
 COPY . .
 
