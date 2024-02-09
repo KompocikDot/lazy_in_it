@@ -21,6 +21,8 @@ class PostingsTechnologiesLink(SQLModel, table=True):
 
 
 class Posting(BaseModelMixin, BasePostingSchema, table=True):
+    source_id: str = Field(unique=True)
+
     company_id: int | None = Field(default=None, foreign_key="company.id")
     company: "Company" = Relationship(
         back_populates="postings", sa_relationship_kwargs={"lazy": "joined"}

@@ -13,6 +13,7 @@ from .models import (
     Company,
     City,
     Posting,
+    Technology,
 )
 
 from .utils import SortTypeQuery
@@ -20,16 +21,44 @@ from .schemas import CreatePostingSchema
 
 
 async def create_posting(db: DbSession, payload: CreatePostingSchema) -> Posting:
-    print("data", type(payload), payload.experience, payload.work_mode)
     instance = Posting.model_validate(payload)
 
+    pre_existing_posting = await db.exec(
+        Select(Posting).where(Posting.source_id == instance.source_id)
+    )
+
+    if existing_instance := pre_existing_posting.unique().one_or_none():
+        # log that model already exists
+        return existing_instance
+
     salary_stmt = select(Salary).where(
-        Salary.amount == payload.salary_amount,
+        Salary.from_amount == payload.salary_from,
+        Salary.to_amount == payload.salary_to,
         Salary.currency == payload.salary_currency,
     )
+
     if not (salary := await find_one_or_none(db, salary_stmt)):
-        salary = Salary(amount=payload.salary_amount, currency=payload.salary_currency)
+        salary = Salary(
+            from_amount=payload.salary_from,
+            to_amount=payload.salary_to,
+            currency=payload.salary_currency,
+            employment_type=payload.employment_type,
+        )
+
         db.add(salary)
+
+    tech_instances = []
+    for tech in payload.raw_technologies:
+        tech_stmt = select(Technology).where(
+            func.lower(Technology.name) == func.lower(tech.name),
+        )
+
+        if not (technology := await find_one_or_none(db, tech_stmt)):
+            technology = Technology(name=tech.name)
+
+            db.add(technology)
+
+        tech_instances.append(technology)
 
     city_stmt = select(City).where(
         func.lower(City.name) == func.lower(payload.city_name)
@@ -50,6 +79,7 @@ async def create_posting(db: DbSession, payload: CreatePostingSchema) -> Posting
     instance.company = company
     instance.salary = salary
     instance.city = city
+    instance.technologies = tech_instances
 
     db.add(instance)
     await db.commit()
@@ -60,7 +90,7 @@ async def create_posting(db: DbSession, payload: CreatePostingSchema) -> Posting
 
 async def _paginate_postings(
     db: DbSession, page: int, order: SortTypeQuery
-) -> list[Posting]:
+) -> tuple[list[Posting], int]:
     limit = get_settings().PAGINATION_LIMIT
     offset = (page - 1) * get_settings().PAGINATION_LIMIT
 
@@ -77,7 +107,10 @@ async def _paginate_postings(
     )
     res = await db.exec(stmt)
 
-    return [row[0] for row in res.unique().all()]
+    count_stmt = Select(func.count(Posting.id))
+    rows_amount = await db.exec(count_stmt)
+
+    return [row[0] for row in res.unique().all()], rows_amount.scalar_one()
 
 
 async def serve_templated_postings(
@@ -86,7 +119,7 @@ async def serve_templated_postings(
     page: int = Query(1, ge=1),
     sort: SortTypeQuery | None = SortTypeQuery.DESC,
 ) -> HTMLResponse:
-    postings = await _paginate_postings(db, page, sort)
+    postings, postings_count = await _paginate_postings(db, page, sort)
 
     if page and page > 1:
         name = "postings.j2"
@@ -102,10 +135,18 @@ async def serve_templated_postings(
             "page": 1,
             "sort": sort,
             "sort_options": [
-                {"name": "Most Recent", "active": True, "href": "/?sort=desc"},
-                {"name": "Least Recent", "active": False, "href": "/?sort=asc"},
+                {
+                    "name": "Most Recent",
+                    "active": sort == SortTypeQuery.DESC,
+                    "href": "/?sort=desc",
+                },
+                {
+                    "name": "Least Recent",
+                    "active": sort == SortTypeQuery.ASC,
+                    "href": "/?sort=asc",
+                },
             ],
-            "postings_count": 4,
+            "postings_count": postings_count,
             "postings": postings,
         }
 

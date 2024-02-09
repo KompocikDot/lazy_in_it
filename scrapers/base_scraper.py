@@ -6,13 +6,20 @@ from httpx import AsyncClient
 from pydantic import BaseModel
 
 
+class Technology(BaseModel):
+    name: str
+
+
 class DbInput(BaseModel):
+    source_id: str
+    job_title: str
+
     company_name: str
     city_name: str
-    salary_amount: str
+
     salary_currency: str
-    salary_amount: str
-    job_title: str
+    salary_from: int | None
+    salary_to: int | None
 
     experience: str
     type_of_work: str
@@ -24,12 +31,15 @@ class DbInput(BaseModel):
     posting_url: str
     posting_photo: str
 
+    raw_technologies: list[Technology]
+
 
 class BaseScraperMixin:
     BASE_URL: str
 
     name: str
     sleep_time_sec: int
+    sleep_time_between_pages: int
 
     def __init__(self, api_client, logger: Logger) -> None:
         self.name = self.__class__.__name__
@@ -40,19 +50,19 @@ class BaseScraperMixin:
 
         self.retries = 5  # load from .env
         self.sleep_time_sec = 60  # load it from .env
+        self.sleep_time_between_pages = 2  # load it from .env
         self._api_client: AsyncClient = api_client
 
-    async def insert_to_db(self, data: list[DbInput]) -> None:
+    async def insert_to_db(self, data: DbInput) -> None:
         retries = self.retries
-        for obj in data:
-            api_pings = 0
-            while api_pings < retries:
-                req = await self._api_client.post(
-                    "/postings/", data=obj.model_dump_json()
-                )
-                if 200 <= req.status_code <= 299:
-                    break
-                api_pings += 1
+        api_pings = 0
+
+        while api_pings < retries:
+            req = await self._api_client.post("/postings/", data=data.model_dump_json())
+            if 200 <= req.status_code <= 299:
+                break
+
+            api_pings += 1
 
 
 class BaseScraper(Protocol):

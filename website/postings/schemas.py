@@ -59,13 +59,18 @@ class BaseCitySchema(SQLModel):
 
 class BaseSalarySchema(SQLModel):
     id: int
-    amount: str = Field(unique=True)
+    from_amount: int | None
+    to_amount: int | None
+    employment_type: EmploymentType
     currency: Currency
 
 
 class BaseTechnologySchema(SQLModel):
-    id: int
     name: str = Field(unique=True)
+
+
+class TechnologySchemaWithId(BaseTechnologySchema):
+    id: int
 
 
 class BasePostingSchema(SQLModel):
@@ -74,7 +79,6 @@ class BasePostingSchema(SQLModel):
     job_title: str
     experience: Experience
     type_of_work: TypeOfWork
-    employment_type: EmploymentType
     work_mode: WorkMode
 
     originally_published_at: datetime = Field(sa_type=DateTime(timezone=True))
@@ -84,15 +88,21 @@ class BasePostingSchema(SQLModel):
 
 
 class CreatePostingSchema(BasePostingSchema):
+    source_id: str
+
     company_name: str
     city_name: str
-    salary_amount: str
+    salary_from: int | None
+    salary_to: int | None
     salary_currency: Currency
+
+    employment_type: EmploymentType
+    raw_technologies: list[BaseTechnologySchema]
 
 
 class PostingSchema(BasePostingSchema):
     id: int
     company: BaseCompanySchema
-    salary: BaseSalarySchema
+    salaries: list[BaseSalarySchema]
     city: BaseCitySchema
-    # technologies: list[BaseTechnologySchema]
+    technologies: list[TechnologySchemaWithId]

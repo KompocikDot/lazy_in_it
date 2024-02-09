@@ -13,8 +13,10 @@ from postings.routes import router as main_router
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     async with test_engine.begin() as test_conn:
+        # await test_conn.run_sync(SQLModel.metadata.drop_all)
         await test_conn.run_sync(SQLModel.metadata.create_all)
     async with engine.begin() as conn:
+        # await conn.run_sync(SQLModel.metadata.drop_all)
         await conn.run_sync(SQLModel.metadata.create_all)
     yield
 

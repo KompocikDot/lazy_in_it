@@ -2,17 +2,17 @@ import asyncio
 import logging
 
 from httpx import RequestError
-from base_scraper import Scraper, DbInput
+from base_scraper import Scraper, DbInput, Technology
 
 
 class JustJoinItScraper(Scraper):
     BASE_URL = "https://api.justjoin.it/v2/user-panel"
 
-    async def scrape(self) -> any:
+    async def scrape(self, page: int = 1) -> dict:
         while True:
             try:
                 params = {
-                    "page": 1,
+                    "page": page,
                     "sortBy": "published",
                     "orderBy": "DESC",
                     "perPage": 100,
@@ -35,6 +35,7 @@ class JustJoinItScraper(Scraper):
 
         for posting in raw_postings:
             db_posting = DbInput(
+                source_id=posting["slug"],
                 city_name=posting["city"],
                 posting_url=f"https://www.justjoin.it/offers/{posting['slug']}",
                 posting_photo=posting["companyLogoThumbUrl"],
@@ -46,9 +47,14 @@ class JustJoinItScraper(Scraper):
                 # TODO: ONE POSTING CAN HAVE MULTIPLE TYPES AND SALARIES DEPENDING ON IT
                 employment_type="b2b",
                 # TODO: Change both below
+                salary_from=posting["employmentTypes"][0].get("from", 0),
+                salary_to=posting["employmentTypes"][0].get("to", 0),
                 salary_currency="pln",
-                salary_amount="2137",
                 originally_published_at=posting["publishedAt"],
+                raw_technologies=[
+                    Technology(name=tech_name)
+                    for tech_name in posting["requiredSkills"]
+                ],
             )
 
             db_formatted_postings.append(db_posting)
@@ -56,12 +62,28 @@ class JustJoinItScraper(Scraper):
         return db_formatted_postings
 
     async def run(self) -> None:
-        while True:
-            scraped_data = await self.scrape()
-            data_in_db_format = self.format_json_to_db(scraped_data)
+        page = 1
 
-            await self.insert_to_db(data_in_db_format)
-            await asyncio.sleep(self.sleep_time_sec)
+        while True:
+            scraped_data = await self.scrape(page=page)
+            max_pages = scraped_data["meta"]["totalPages"]
+
+            data_in_db_format = self.format_json_to_db(scraped_data)
+            async with asyncio.TaskGroup() as internal_tg:
+                tasks = []
+                for index, data in enumerate(data_in_db_format):
+                    task = internal_tg.create_task(
+                        self.insert_to_db(data), name=f"{self.name} | {index}"
+                    )
+                    tasks.append(task)
+
+            if max_pages == page:
+                page = 1
+                await asyncio.sleep(self.sleep_time_sec)
+
+            else:
+                page += 1
+                await asyncio.sleep(self.sleep_time_between_pages)
 
     @staticmethod
     def experience_to_db_format(exp: str) -> str:

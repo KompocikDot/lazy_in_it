@@ -19,7 +19,7 @@
                             <div class="mt-1 text-base font-semibold leading-6 text-light-green">
                                 {% for technology in posting.technologies %}
                                     <dd class="inline-flex items-center rounded-md bg-light-green/10 px-2 py-1 text-xs font-medium text-light-green ring-1 ring-inset ring-light-green/20">
-                                        {{ technology }}
+                                        {{ technology.name }}
                                     </dd>
                                 {% endfor %}
 
@@ -72,7 +72,12 @@
                                 </svg>
 
                             </dt>
-                            <dd class="text-sm leading-6 text-light-green/90">{{ posting.salary.amount }} {{ posting.salary.currency }}</dd>
+                            {% if not posting.salary.from_amount and not posting.salary_to_amount %}
+                                <dd class="text-sm leading-6 text-light-green/90">Hidden</dd>
+                            {% else %}
+                            	<dd class="text-sm leading-6 text-light-green/90">{{ posting.salary.from_amount }} - {{ posting.salary.to_amount }} {{ posting.salary.currency }}</dd>
+                            {% endif %}
+
                         </div>
                         </div>
                     </dl>
